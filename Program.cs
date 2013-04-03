@@ -34,15 +34,16 @@ namespace loc_db
             Console.Write("Enter the path to the folder in which the batch data exists\n");
             Console.Write("Eg - C:\\Users\\sowmya\\Desktop\\New folder -  if Batch#.json exists in New folder \n");
             Console.Write("Please ensure that the folder entered is not read only \n");
-            //basebatchurl = Console.ReadLine();
-            //var sc = dbInst.SuperCollections.Where(c => c.Title == "LOC Data");
-            //foreach(SuperCollection s in sc)
-                //my_sc = s;
+            basebatchurl = Console.ReadLine();
+
             InitializeDbContext();
+            var sc = dbInst.SuperCollections.Where(c => c.Title == "LOC Data");
+            foreach (SuperCollection s in sc)
+                my_sc = s;
             batchurl = basebatchurl + "\\Batch" + batchnum + ".json";    
             try
             {
-                //if(my_sc == null)
+                if(my_sc == null)
                 ToRunInFirstBatch();
                    
                 WriteToDb();
@@ -101,7 +102,6 @@ namespace loc_db
                         try
                         {
                             string issuesurl = (string)obj["local_url"];
-                            //Stream data = wc.OpenRead(issuesurl);
                             StreamReader reader = new StreamReader(basebatchurl + issuesurl); 
                             string s = reader.ReadToEnd();
                             reader.Close();
@@ -113,7 +113,6 @@ namespace loc_db
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine(e);
                             continue;
                         }
                     }
@@ -124,7 +123,6 @@ namespace loc_db
 
         private static void ParseJIssues(JArray issuesArray)
         {
-            //WebClient wc = new WebClient();
             if (issuesArray != null && issuesArray.Count > 0)
             {
             
@@ -213,7 +211,6 @@ namespace loc_db
                             j.Collection = new_coll;
                             String temp2 = (String)(pagesArray[i])["url"];
                             String URLofData = temp2.Remove(temp2.LastIndexOf(".json")) + "/seq-" + (i + 1);
-                            //String URLofData = pagesurl.Remove(pagesurl.LastIndexOf(".json")) + "/seq-" + (i + 1);
                             j.Exhibits = new System.Collections.ObjectModel.Collection<Exhibit>();
                             j.Exhibits.Add(createExhibit(j, URLofData, new_coll));
                             parent.ChildTimelines.Add(j);
@@ -221,8 +218,6 @@ namespace loc_db
                             dbInst.Timelines.Add(j);
                             if ((my_timeline_count % 10000) == 0) 
                                 Console.WriteLine("Timelines completed  " + my_timeline_count + "  " + DateTime.Now.ToShortTimeString());
-                            //dbInst.SaveChanges();
-
                         }
 
                         //adding parent to db
@@ -232,7 +227,6 @@ namespace loc_db
                        }
                       catch (Exception e)
                       {
-                          Console.WriteLine(e);
                           continue;
                       }
                 }
@@ -306,11 +300,9 @@ namespace loc_db
                 }
                 // Insert into db here
                 dbInst.ContentItems.Add(c);
-                //dbInst.SaveChanges();
                 e.ContentItems.Add(c);
             }
             dbInst.Exhibits.Add(e);
-           // dbInst.SaveChanges();
             return e;
         }
 
