@@ -17,7 +17,9 @@ namespace loc_db
         public static Collection collectionForLOC;
         public static string batchurl = basebatchurl;
         public static SuperCollection my_sc; 
-        public static int my_count = 1000;
+        public static int my_timeline_count = 1000;
+        public static int my_contentitem_count = 10000;
+        public static int my_exhibit_count = 10000;
         public static Boolean canrun;
         public static Storage dbInst;
 
@@ -32,15 +34,15 @@ namespace loc_db
             Console.Write("Enter the path to the folder in which the batch data exists\n");
             Console.Write("Eg - C:\\Users\\sowmya\\Desktop\\New folder -  if Batch#.json exists in New folder \n");
             Console.Write("Please ensure that the folder entered is not read only \n");
-            basebatchurl = Console.ReadLine();
-            var sc = dbInst.SuperCollections.Where(c => c.Title == "LOC Data");
-            foreach(SuperCollection s in sc)
-                my_sc = s;
+            //basebatchurl = Console.ReadLine();
+            //var sc = dbInst.SuperCollections.Where(c => c.Title == "LOC Data");
+            //foreach(SuperCollection s in sc)
+                //my_sc = s;
             InitializeDbContext();
             batchurl = basebatchurl + "\\Batch" + batchnum + ".json";    
             try
             {
-                if(my_sc == null)
+                //if(my_sc == null)
                 ToRunInFirstBatch();
                    
                 WriteToDb();
@@ -107,6 +109,7 @@ namespace loc_db
                             JArray issuesArray = (JArray)jobj["issues"];
                             ParseJIssues(issuesArray);
                             dbInst.SaveChanges();
+                            Console.WriteLine("Parsed" + issuesurl);
                         }
                         catch (Exception e)
                         {
@@ -167,7 +170,8 @@ namespace loc_db
                         parent.Threshold = "8. Origins of modern world"; //todo
                         parent.Title = title;
                         parent.Collection = new_coll;
-                        parent.UniqueId = my_count++;
+                        parent.UniqueId = my_timeline_count++;
+                          
                         parent.ChildTimelines = new System.Collections.ObjectModel.Collection<Timeline>();
                         //Creating the child timelines
                         for (int i = 0; i < pagesArray.Count; i++)
@@ -190,7 +194,7 @@ namespace loc_db
                             j.ToYear = j.FromYear;
                             j.Start = j.FromYear;
                             j.End = j.ToYear;
-                            j.UniqueId = my_count++;
+                            j.UniqueId = my_timeline_count++;
                             if (parent.FromYear == 0)
                             {
                                 parent.FromTimeUnit = "ce";
@@ -215,6 +219,8 @@ namespace loc_db
                             parent.ChildTimelines.Add(j);
                             //adding j to db
                             dbInst.Timelines.Add(j);
+                            if ((my_timeline_count % 10000) == 0) 
+                                Console.WriteLine("Timelines completed  " + my_timeline_count + "  " + DateTime.Now.ToShortTimeString());
                             //dbInst.SaveChanges();
 
                         }
@@ -249,14 +255,14 @@ namespace loc_db
             e.Month = j.FromMonth;
             e.Year = j.FromYear;
             e.Sequence = 100;
-            e.UniqueId = my_count++;
+            e.UniqueId = my_exhibit_count++;
             e.Collection = col;
             e.ContentItems = new System.Collections.ObjectModel.Collection<ContentItem>();
             for (int i = 0; i < 4; i++)
             {
                 ContentItem c = new ContentItem();
                 c.Id = Guid.NewGuid();
-                c.UniqueId = my_count++;
+                c.UniqueId = my_contentitem_count++;
                 c.Title = j.Title + "- ContentItem";
                 c.Threshold = "8. Origins of modern world";
                 c.Regime = "Humanity";
